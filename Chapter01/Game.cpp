@@ -16,7 +16,8 @@ Game::Game()
 ,mRenderer(nullptr)
 ,mTicksCount(0)
 ,mIsRunning(true)
-,mPaddleDir(0)
+,mPaddleDir1(0)
+,mPaddleDir2(0)
 {
 	
 }
@@ -50,8 +51,8 @@ bool Game::Initialize()
 	//// Create SDL renderer
 	mRenderer = SDL_CreateRenderer(
 		mWindow, // Window to create renderer for
-		-1,		 // Usually -1
-		SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
+		-1,		 // Usually -1 /* Can be otherwise if we have multiple windows */
+		SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC /* vsync meaning don't swap buffers while the display is drawing */
 	);
 
 	if (!mRenderer)
@@ -60,18 +61,19 @@ bool Game::Initialize()
 		return false;
 	}
 	//
-	mPaddlePos.x = 10.0f;
-	mPaddlePos.y = 768.0f/2.0f;
-	mBallPos.x = 1024.0f/2.0f;
-	mBallPos.y = 768.0f/2.0f;
-	mBallVel.x = -200.0f;
-	mBallVel.y = 235.0f;
+	mPaddlePos1.x = 10.0f;
+	mPaddlePos1.y = 768.0f / 2.0f;
+	mPaddlePos2.x = 999.0f;
+	mPaddlePos2.y = 768.0f / 2.0f;
+
+	mBall.push_back({ { 1024.0f / 2.0f, 768.0f / 2.0f}, {-200.0f, 235.0f} });
+	mBall.push_back({ { 1024.0f / 2.0f, 300.0f / 2.0f}, { 200.0f, 235.0f} });
 	return true;
 }
 
 void Game::RunLoop()
 {
-	while (mIsRunning)
+	while (mIsRunning) /* A basic game loop */
 	{
 		ProcessInput();
 		UpdateGame();
@@ -100,30 +102,43 @@ void Game::ProcessInput()
 	{
 		mIsRunning = false;
 	}
-	
+
 	// Update paddle direction based on W/S keys
-	mPaddleDir = 0;
+	mPaddleDir1 = 0;
 	if (state[SDL_SCANCODE_W])
 	{
-		mPaddleDir -= 1;
+		mPaddleDir1 -= 1;
 	}
 	if (state[SDL_SCANCODE_S])
 	{
-		mPaddleDir += 1;
+		mPaddleDir1 += 1;
+	}
+
+	// Update paddle direction 2 based on I/K keys
+	mPaddleDir2 = 0;
+	if (state[SDL_SCANCODE_I])
+	{
+		mPaddleDir2 -= 1;
+	}
+	if (state[SDL_SCANCODE_K])
+	{
+		mPaddleDir2 += 1;
 	}
 }
 
 void Game::UpdateGame()
 {
 	// Wait until 16ms has elapsed since last frame
+	/* This is "frame limiting", so the game can't run at any arbitary frame rate and */
 	while (!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16))
 		;
 
 	// Delta time is the difference in ticks from last frame
 	// (converted to seconds)
-	float deltaTime = (SDL_GetTicks() - mTicksCount) / 1000.0f;
+	float deltaTime = (SDL_GetTicks() - mTicksCount) / 1000.0f; /* SDL_GetTicks returns ms since SDL_Init call, minus the last value of SDL_GetTicks */
 	
 	// Clamp maximum delta time value
+	/* Otherwise if there is a large time between draws (breakpoint for eg) game would skip forwards */
 	if (deltaTime > 0.05f)
 	{
 		deltaTime = 0.05f;
@@ -131,73 +146,107 @@ void Game::UpdateGame()
 
 	// Update tick counts (for next frame)
 	mTicksCount = SDL_GetTicks();
-	
+
 	// Update paddle position based on direction
-	if (mPaddleDir != 0)
+	if (mPaddleDir1 != 0)
 	{
-		mPaddlePos.y += mPaddleDir * 300.0f * deltaTime;
+		/* 300 pixels per second * timeElapsed sinse last draw.
+		* Use of deltaTime removes dependence of game movement on code execution speed.
+		*/
+		mPaddlePos1.y += mPaddleDir1 * 300.0f * deltaTime;
 		// Make sure paddle doesn't move off screen!
-		if (mPaddlePos.y < (paddleH/2.0f + thickness))
+		if (mPaddlePos1.y < (paddleH / 2.0f + thickness))
 		{
-			mPaddlePos.y = paddleH/2.0f + thickness;
+			mPaddlePos1.y = paddleH / 2.0f + thickness;
 		}
-		else if (mPaddlePos.y > (768.0f - paddleH/2.0f - thickness))
+		else if (mPaddlePos1.y >(768.0f - paddleH / 2.0f - thickness))
 		{
-			mPaddlePos.y = 768.0f - paddleH/2.0f - thickness;
+			mPaddlePos1.y = 768.0f - paddleH / 2.0f - thickness;
+		}
+	}
+
+	// Update paddle position based on direction
+	if (mPaddleDir2 != 0)
+	{
+		/* 300 pixels per second * timeElapsed sinse last draw.
+		* Use of deltaTime removes dependence of game movement on code execution speed.
+		*/
+		mPaddlePos2.y += mPaddleDir2 * 300.0f * deltaTime;
+		// Make sure paddle doesn't move off screen!
+		if (mPaddlePos2.y < (paddleH / 2.0f + thickness))
+		{
+			mPaddlePos2.y = paddleH / 2.0f + thickness;
+		}
+		else if (mPaddlePos2.y >(768.0f - paddleH / 2.0f - thickness))
+		{
+			mPaddlePos2.y = 768.0f - paddleH / 2.0f - thickness;
 		}
 	}
 	
 	// Update ball position based on ball velocity
-	mBallPos.x += mBallVel.x * deltaTime;
-	mBallPos.y += mBallVel.y * deltaTime;
-	
-	// Bounce if needed
-	// Did we intersect with the paddle?
-	float diff = mPaddlePos.y - mBallPos.y;
-	// Take absolute value of difference
-	diff = (diff > 0.0f) ? diff : -diff;
-	if (
-		// Our y-difference is small enough
-		diff <= paddleH / 2.0f &&
-		// We are in the correct x-position
-		mBallPos.x <= 25.0f && mBallPos.x >= 20.0f &&
-		// The ball is moving to the left
-		mBallVel.x < 0.0f)
+	//for (Ball b : mBall)
+	for (unsigned short i = 0; i < mBall.size(); i++)
 	{
-		mBallVel.x *= -1.0f;
-	}
-	// Did the ball go off the screen? (if so, end game)
-	else if (mBallPos.x <= 0.0f)
-	{
-		mIsRunning = false;
-	}
-	// Did the ball collide with the right wall?
-	else if (mBallPos.x >= (1024.0f - thickness) && mBallVel.x > 0.0f)
-	{
-		mBallVel.x *= -1.0f;
-	}
-	
-	// Did the ball collide with the top wall?
-	if (mBallPos.y <= thickness && mBallVel.y < 0.0f)
-	{
-		mBallVel.y *= -1;
-	}
-	// Did the ball collide with the bottom wall?
-	else if (mBallPos.y >= (768 - thickness) &&
-		mBallVel.y > 0.0f)
-	{
-		mBallVel.y *= -1;
+		mBall[i].ballPos.x += mBall[i].ballVel.x * deltaTime;
+		mBall[i].ballPos.x += mBall[i].ballVel.x * deltaTime;
+		mBall[i].ballPos.y += mBall[i].ballVel.y * deltaTime;
+
+		float diff1 = mPaddlePos1.y - mBall[i].ballPos.y;
+		float diff2 = mPaddlePos2.y - mBall[i].ballPos.y;
+
+		// Take absolute value of difference
+		diff1 = (diff1 > 0.0f) ? diff1 : -diff1;
+		diff2 = (diff2 > 0.0f) ? diff2 : -diff2;
+		if (
+			// Our y-difference is small enough
+			diff1 <= paddleH / 2.0f &&
+			// We are in the correct x-position
+			mBall[i].ballPos.x <= 25.0f && mBall[i].ballPos.x >= 20.0f &&
+			// The ball is moving to the left
+			mBall[i].ballVel.x < 0.0f)
+		{
+			mBall[i].ballVel.x *= -1.0f;
+		}
+		else if (
+			diff2 <= paddleH / 2.0f &&
+			mBall[i].ballPos.x <= 1004.0f && mBall[i].ballPos.x >= 999.0f &&
+			mBall[i].ballVel.x > 0.0f)
+		{
+			mBall[i].ballVel.x *= -1.0f;
+		}
+		// Did the ball go off the screen? (if so, end game)
+		else if (mBall[i].ballPos.x <= 0.0f || mBall[i].ballPos.x >= 1024.0f)
+		{
+			mIsRunning = false;
+		}
+		
+		// Did the ball collide with the top wall?
+		if (mBall[i].ballPos.y <= thickness && mBall[i].ballVel.y < 0.0f)
+		{
+			mBall[i].ballVel.y *= -1;
+		}
+		// Did the ball collide with the bottom wall?
+		else if (mBall[i].ballPos.y >= (768 - thickness) &&
+			mBall[i].ballVel.y > 0.0f)
+		{
+			mBall[i].ballVel.y *= -1;
+		}
 	}
 }
 
 void Game::GenerateOutput()
 {
+	/* 1. Clear the back buffer
+	 * 2. Draw to the back buffer
+	 * 3. Swap the buffers
+	 */
+
 	// Set draw color to blue
 	SDL_SetRenderDrawColor(
 		mRenderer,
 		0,		// R
 		0,		// G 
-		255,	// B
+		255,	// B /* This assumes we will always use 8-bit colours, which is the most common. Chosing floats 0.0 -> 1.0 doesn't assume this, but SDL uses the former */
 		255		// A
 	);
 	
@@ -221,31 +270,51 @@ void Game::GenerateOutput()
 	SDL_RenderFillRect(mRenderer, &wall);
 	
 	// Draw right wall
-	wall.x = 1024 - thickness;
+	/*wall.x = 1024 - thickness;
 	wall.y = 0;
 	wall.w = thickness;
 	wall.h = 1024;
-	SDL_RenderFillRect(mRenderer, &wall);
-	
+	SDL_RenderFillRect(mRenderer, &wall);*/
+
 	// Draw paddle
-	SDL_Rect paddle{
-		static_cast<int>(mPaddlePos.x),
-		static_cast<int>(mPaddlePos.y - paddleH/2),
+	SDL_Rect paddle1{
+		static_cast<int>(mPaddlePos1.x),
+		static_cast<int>(mPaddlePos1.y - paddleH / 2),
 		thickness,
 		static_cast<int>(paddleH)
 	};
-	SDL_RenderFillRect(mRenderer, &paddle);
+	SDL_RenderFillRect(mRenderer, &paddle1);
+	
+	// Draw paddle 2
+	SDL_Rect paddle2{
+		static_cast<int>(mPaddlePos2.x),
+		static_cast<int>(mPaddlePos2.y - paddleH / 2),
+		thickness,
+		static_cast<int>(paddleH)
+	};
+	SDL_RenderFillRect(mRenderer, &paddle2);
 	
 	// Draw ball
-	SDL_Rect ball{	
-		static_cast<int>(mBallPos.x - thickness/2),
-		static_cast<int>(mBallPos.y - thickness/2),
-		thickness,
-		thickness
-	};
-	SDL_RenderFillRect(mRenderer, &ball);
+	for (Ball b : mBall)
+	{
+		SDL_Rect ball{	
+			static_cast<int>(b.ballPos.x - thickness/2),
+			static_cast<int>(b.ballPos.y - thickness/2),
+			thickness,
+			thickness
+		};
+		SDL_RenderFillRect(mRenderer, &ball);
+	}
 	
 	// Swap front buffer and back buffer
+	/* The reason we do this is if the display read the buffer while we were writting to it, you'd get a "screen tear".
+	 * Writting to the back buffer and then swapping them in one action prevents this.
+	 * This is called "double buffering".
+	 * We must also wait for the display to finish drawing the front buffer because swapping buffers during a draw would cause the same issue.
+	 * This is called "vertical synchronisation", or vsync after the signal the display sends indicating a refresh.
+	 * vsync is often offered as an option, because it is a trade off between an occassional screen tear, and an occassional stutter.
+	 * "Addaptive refresh rate" solves the problem by allowing the game to request a refresh, but it is not widely available.
+	 */
 	SDL_RenderPresent(mRenderer);
 }
 
