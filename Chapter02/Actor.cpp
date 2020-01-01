@@ -45,6 +45,7 @@ void Actor::UpdateComponents(float deltaTime)
 {
 	for (auto comp : mComponents)
 	{
+		/* This is where AnimSpriteComponent is called. It is registered as a component via the SpriteComponent > Component constructor */
 		comp->Update(deltaTime);
 	}
 }

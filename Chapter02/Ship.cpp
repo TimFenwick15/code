@@ -15,6 +15,11 @@ Ship::Ship(Game* game)
 	,mRightSpeed(0.0f)
 	,mDownSpeed(0.0f)
 {
+	/*
+	 * Load the sprites for the ship.
+	 * Modify this to allow more sprites, and set a range as an annimation
+	 */
+
 	// Create an animated sprite component
 	AnimSpriteComponent* asc = new AnimSpriteComponent(this);
 	std::vector<SDL_Texture*> anims = {
@@ -22,8 +27,14 @@ Ship::Ship(Game* game)
 		game->GetTexture("Assets/Ship02.png"),
 		game->GetTexture("Assets/Ship03.png"),
 		game->GetTexture("Assets/Ship04.png"),
+		game->GetTexture("Assets/Enemy01.png"),
+		game->GetTexture("Assets/Enemy02.png"),
+		game->GetTexture("Assets/Enemy03.png"),
+		game->GetTexture("Assets/Enemy04.png"),
 	};
 	asc->SetAnimTextures(anims);
+	asc->SetAnimRange(0, 3, true);
+	asc->SetAnimRange(4, 7, true);
 }
 
 void Ship::UpdateActor(float deltaTime)
