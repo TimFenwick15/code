@@ -16,6 +16,7 @@ class AnimSpriteComponent : public SpriteComponent
 {
 public:
 	AnimSpriteComponent(class Actor* owner, int drawOrder = 100);
+	~AnimSpriteComponent();
 	// Update animation every frame (overriden from component)
 	void Update(float deltaTime) override;
 	// Set the textures used for animation

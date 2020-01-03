@@ -20,6 +20,21 @@ AnimSpriteComponent::AnimSpriteComponent(Actor* owner, int drawOrder)
 }
 
 /**
+ * Because we heap allocated some objects, we need to delete them.
+ * AnimSpriteComponent (non-override destructor) > SpriteComponent (non-override destructor) > Component (virtual destructor)
+ */
+AnimSpriteComponent::~AnimSpriteComponent()
+{
+	unsigned int size = mAnimRanges.size();
+	for (unsigned int i = 0; i < size; i++)
+	{
+		delete mAnimRanges[i];
+	}
+	mAnimRanges.clear();
+	/* I've not deleted mAnimTextures because the textures were defined on the stack in the Ship contructor. Is this correct? */
+}
+
+/**
  * Move an animated sprite on to its next frame
  */
 void AnimSpriteComponent::Update(float deltaTime)
@@ -50,7 +65,9 @@ void AnimSpriteComponent::Update(float deltaTime)
 		SetTexture(mAnimTextures[static_cast<int>(mCurrFrame)]);
 	}
 
-	/* It's weird to have this keyboard response here, but there's no link from Ship we can use to access this scope */
+	/* It's weird to have this keyboard response here, but there's no link from Ship we can use to access this scope.
+	 * Edit: chapter 3 suggests making method on the game object, and a overriding it from the component.
+	 */
 	const Uint8* state = SDL_GetKeyboardState(NULL);
 	if (state[SDL_SCANCODE_SPACE])
 	{
@@ -87,6 +104,7 @@ void AnimSpriteComponent::SetAnimTextures(const std::vector<SDL_Texture*>& textu
 void AnimSpriteComponent::SetAnimRange(unsigned int min, unsigned int max, bool loop)
 {
 	tsAnimationParameters* tempParams = new tsAnimationParameters; /* memory leak I think */
+	                                                               /* Edit: added a destructor */
 	tempParams->min = min;
 	tempParams->max = max;
 	tempParams->loop = loop;

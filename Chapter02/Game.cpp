@@ -13,6 +13,7 @@
 #include "SpriteComponent.h"
 #include "Ship.h"
 #include "BGSpriteComponent.h"
+#include "TileMapComponent.h"
 
 Game::Game()
 :mWindow(nullptr)
@@ -161,26 +162,29 @@ void Game::LoadData()
 	/* Add any other sprites here */
 
 	// Create actor for the background (this doesn't need a subclass)
+
 	Actor* temp = new Actor(this);
-	temp->SetPosition(Vector2(512.0f, 384.0f));
-	// Create the "far back" background
-	BGSpriteComponent* bg = new BGSpriteComponent(temp);
-	bg->SetScreenSize(Vector2(1024.0f, 768.0f));
-	std::vector<SDL_Texture*> bgtexs = {
-		GetTexture("Assets/Farback01.png"),
-		GetTexture("Assets/Farback02.png")
-	};
-	bg->SetBGTextures(bgtexs);
-	bg->SetScrollSpeed(-100.0f);
-	// Create the closer background
-	bg = new BGSpriteComponent(temp, 50);
-	bg->SetScreenSize(Vector2(1024.0f, 768.0f));
-	bgtexs = {
-		GetTexture("Assets/Stars.png"),
-		GetTexture("Assets/Stars.png")
-	};
-	bg->SetBGTextures(bgtexs);
-	bg->SetScrollSpeed(-200.0f);
+	temp->SetPosition(Vector2(512.0f, 384.0f)); /* Improvement from CH1 is sprites track their own position, instead of using free variables */
+
+	SDL_Texture* texture = GetTexture("Assets/Tiles.png");
+
+	TileMapComponent* tileMapLayer1 = new TileMapComponent(temp,
+		texture,
+		"Assets/MapLayer1.csv",
+		60);
+	tileMapLayer1->SetScreenSize(Vector2(1024.0f, 768.0f));
+
+	TileMapComponent* tileMapLayer2 = new TileMapComponent(temp,
+		texture,
+		"Assets/MapLayer2.csv",
+		50);
+	tileMapLayer2->SetScreenSize(Vector2(1024.0f, 768.0f));
+
+	TileMapComponent* tileMapLayer3 = new TileMapComponent(temp,
+		texture,
+		"Assets/MapLayer3.csv",
+		40);
+	tileMapLayer3->SetScreenSize(Vector2(1024.0f, 768.0f));
 }
 
 void Game::UnloadData()
