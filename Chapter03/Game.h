@@ -60,4 +60,7 @@ private:
 	// Game-specific
 	class Ship* mShip; // Player's ship
 	std::vector<class Asteroid*> mAsteroids;
+
+	bool mNewShip;
+	Uint32 mShipDeadTicks;
 };

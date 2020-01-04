@@ -137,6 +137,25 @@ void Game::UpdateGame()
 		}
 	}
 
+	/* If the ship is dead, make a new one!
+	 * It feels like this should be handled from ship, and perhaps we're using delete in a funny way.
+	 * But this is how this game removes sprites. So another implementation needs new functionality
+	 * (EPaused doesn't draw somehow, and resets to alive after a time for eg).
+	 * The order is important here. This check needs to be done before deadActors are deleted, else we are reading deleted memory.
+	 */
+	if (mShip->GetState() == Actor::EDead && mNewShip == false)
+	{
+		mNewShip = true;
+		mShipDeadTicks = mTicksCount;
+	}
+	if (mNewShip == true && mTicksCount - mShipDeadTicks >= 500.0f)
+	{
+		mShip = new Ship(this);
+		mShip->SetPosition(Vector2(512.0f, 384.0f));
+		mShip->SetRotation(Math::PiOver2);
+		mNewShip = false;
+	}
+
 	// Delete dead actors (which removes them from mActors)
 	for (auto actor : deadActors)
 	{
