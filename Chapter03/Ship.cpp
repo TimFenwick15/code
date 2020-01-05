@@ -29,7 +29,6 @@ Ship::Ship(Game* game)
 	ic->SetBackKey(SDL_SCANCODE_S);
 	ic->SetClockwiseKey(SDL_SCANCODE_A);
 	ic->SetCounterClockwiseKey(SDL_SCANCODE_D);
-	ic->SetMaxForwardSpeed(300.0f);
 	ic->SetMaxAngularSpeed(Math::TwoPi);
 
 	/* Create a circle component */
@@ -45,6 +44,7 @@ void Ship::UpdateActor(float deltaTime)
 		if (Intersect(*mCircle, *(c->GetCircle())))
 		{
 			SetState(EDead);
+			c->SetState(EDead);
 			break;
 		}
 	}

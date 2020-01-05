@@ -8,7 +8,7 @@
 
 #include "Asteroid.h"
 #include "SpriteComponent.h"
-#include "MoveComponent.h"
+#include "MoveComponentNewtonian.h"
 #include "Game.h"
 #include "Random.h"
 #include "CircleComponent.h"
@@ -29,8 +29,9 @@ Asteroid::Asteroid(Game* game)
 	sc->SetTexture(game->GetTexture("Assets/Asteroid.png"));
 
 	// Create a move component, and set a forward speed
-	MoveComponent* mc = new MoveComponent(this);
-	mc->SetForwardSpeed(150.0f);
+	MoveComponentNewtonian* mc = new MoveComponentNewtonian(this);
+	//mc->SetForwardSpeed(150.0f);
+	mc->AddForceVector(GetForward() * 10, false);
 
 	// Create a circle component (for collision)
 	mCircle = new CircleComponent(this);
