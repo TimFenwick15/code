@@ -68,4 +68,21 @@ private:
 	// Game-specific
 	class Ship* mShip;
 	std::vector<class Asteroid*> mAsteroids;
+
+	typedef enum
+	{
+		eRed,
+		eGreen,
+		eBlue,
+		eColourMax
+	} teColour;
+	typedef struct
+	{
+		float red;
+		float green;
+		float blue;
+		teColour colour;
+	} m_tsColour;
+	m_tsColour mBackgroundColour;
+	float mBackgroundCycleTime;
 };

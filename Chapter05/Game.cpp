@@ -24,6 +24,7 @@ Game::Game()
 ,mSpriteShader(nullptr)
 ,mIsRunning(true)
 ,mUpdatingActors(false)
+,mBackgroundCycleTime(1.0f / 5.0f) // 5 seconds
 {
 	
 }
@@ -88,7 +89,11 @@ bool Game::Initialize()
 	LoadData();
 
 	mTicksCount = SDL_GetTicks();
-	
+	mBackgroundColour.red = 0.0f;
+	mBackgroundColour.green = 0.0f;
+	mBackgroundColour.blue = 0.0f;
+	mBackgroundColour.colour = eRed;
+
 	return true;
 }
 
@@ -174,12 +179,65 @@ void Game::UpdateGame()
 	{
 		delete actor;
 	}
+
+	float* fadeInColour = nullptr;
+	float* fadeOutColour1 = nullptr;
+	float* fadeOutColour2 = nullptr;
+	switch (mBackgroundColour.colour)
+	{
+	case eRed:
+		fadeInColour = &mBackgroundColour.red;
+		fadeOutColour1 = &mBackgroundColour.blue;
+		fadeOutColour2 = &mBackgroundColour.green;
+		break;
+	case eGreen:
+		fadeInColour = &mBackgroundColour.green;
+		fadeOutColour1 = &mBackgroundColour.red;
+		fadeOutColour2 = &mBackgroundColour.blue;
+		break;
+	case eBlue:
+		fadeInColour = &mBackgroundColour.blue;
+		fadeOutColour1 = &mBackgroundColour.green;
+		fadeOutColour2 = &mBackgroundColour.red;
+		break;
+	case eColourMax:
+	default:
+		// Make sure we can't accidentally operate on an uninitialised pointer
+		fadeInColour = &mBackgroundColour.red;
+		fadeOutColour1 = &mBackgroundColour.blue;
+		fadeOutColour2 = &mBackgroundColour.green;
+		break;
+	}
+
+	*fadeInColour += deltaTime * mBackgroundCycleTime;
+	*fadeOutColour1 -= deltaTime * mBackgroundCycleTime;
+	*fadeOutColour2 -= deltaTime * mBackgroundCycleTime;
+	if (*fadeInColour >= 1.0f)
+	{
+		*fadeInColour = 1.0f;
+	}
+	if (*fadeOutColour1 < 0.0f)
+	{
+		*fadeOutColour1 = 0.0f;
+	}
+	if (*fadeOutColour2 < 0.0f)
+	{
+		*fadeOutColour2 = 0.0f;
+	}
+	if (*fadeInColour == 1.0f && *fadeOutColour1 == 0.0f && *fadeOutColour2 == 0.0f)
+	{
+		mBackgroundColour.colour = static_cast<teColour>(mBackgroundColour.colour + static_cast<teColour>(1));
+		if (mBackgroundColour.colour == eColourMax)
+		{
+			mBackgroundColour.colour = eRed;
+		}
+	}
 }
 
 void Game::GenerateOutput()
 {
 	// Set the clear color to grey
-	glClearColor(0.86f, 0.86f, 0.86f, 1.0f);
+	glClearColor(mBackgroundColour.red, mBackgroundColour.green, mBackgroundColour.blue, 1.0f);
 	// Clear the color buffer
 	glClear(GL_COLOR_BUFFER_BIT);
 	
