@@ -10,7 +10,7 @@ OpenGL doesn't tend to return pointers; it prefers object IDs. These are IDs are
 
 glGenVertexArrays(1, &mVertexArray) -> glBindVertexArray(mVertexArray)
 glGenBuffers(1, &mVertexBuffer) -> glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer)
-glEnableVertexAttribArray(0) -> glVertexAtteibPointer()
+glEnableVertexAttribArray(0) -> glVertexAttribPointer()
 
 glBufferData takes an object type instead of an ID, and acts on the last buffer bound using glBindBuffer.
 
@@ -133,3 +133,12 @@ outColour = texture(uTexture, fragTexCoord); // get the colour from the texture
 
 Transparency (using the alpha) is enabled from the OpenGL code. The final colour is calculated using:
 outputColour = newAlpha * newColour + (1 - newAlpha) * currentColour;
+
+## Exercise Notes
+If the shader fails to compile, the game will exit.
+
+Put a break point in the destructor, the command prompt will contain the shader compiler output.
+
+Writing data to the VectexBuffer is only done once. For the vertices this doesn't matter because the world transform handles sprite movement.
+
+For the colour exercise, this means the colour can't change once it has been written to the VertexBuffer.

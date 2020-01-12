@@ -12,6 +12,8 @@
 // Tex coord input from vertex shader
 in vec2 fragTexCoord;
 
+in vec3 vertRGB;
+
 // This corresponds to the output color to the color buffer
 out vec4 outColor;
 
@@ -20,6 +22,12 @@ uniform sampler2D uTexture;
 
 void main()
 {
+    vec4 averagedColour = texture(uTexture, fragTexCoord);
+	averagedColour.x = (averagedColour.x + vertRGB.x) / 2; // need to make sure these don't go out of bounds
+	averagedColour.y = (averagedColour.y + vertRGB.y) / 2;
+	averagedColour.z = (averagedColour.z + vertRGB.z) / 2;
+
 	// Sample color from texture
-	outColor = texture(uTexture, fragTexCoord);
+	outColor = averagedColour;
+	//outColor = texture(uTexture, fragTexCoord);
 }

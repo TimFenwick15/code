@@ -14,6 +14,7 @@ VertexArray::VertexArray(const float* verts, unsigned int numVerts,
 	:mNumVerts(numVerts)
 	,mNumIndices(numIndices)
 {
+	constexpr unsigned int floatsPerVertex = 8; // x, y, z, u, v, r, g, b
 	// Create vertex array
 	glGenVertexArrays(1, &mVertexArray);
 	glBindVertexArray(mVertexArray);
@@ -21,7 +22,7 @@ VertexArray::VertexArray(const float* verts, unsigned int numVerts,
 	// Create vertex buffer
 	glGenBuffers(1, &mVertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, numVerts * 5 * sizeof(float), verts, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, numVerts * floatsPerVertex * sizeof(float), verts, GL_STATIC_DRAW);
 
 	// Create index buffer
 	glGenBuffers(1, &mIndexBuffer);
@@ -32,10 +33,21 @@ VertexArray::VertexArray(const float* verts, unsigned int numVerts,
 	// (For now, assume one vertex format)
 	// Position is 3 floats starting at offset 0
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * floatsPerVertex, 0);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5,
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * floatsPerVertex,
 		reinterpret_cast<void*>(sizeof(float) * 3));
+
+	/* new RGB value */
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(
+		2,                                         /* The attribute index we just set */
+		3,                                         /* The length of this attribute */
+		GL_FLOAT,                                  /* This attribute data type */
+		GL_FALSE,                                  /* Normalised (dunno) */
+		sizeof(float) * floatsPerVertex,           /* Stride */
+		reinterpret_cast<void*>(sizeof(float) * 5) /* The number of bytes before we got to this attribute, cast to a (void*) for fun */
+	);
 }
 
 VertexArray::~VertexArray()
