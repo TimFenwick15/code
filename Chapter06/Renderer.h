@@ -65,7 +65,8 @@ private:
 	std::vector<class SpriteComponent*> mSprites;
 
 	// All mesh components drawn
-	std::vector<class MeshComponent*> mMeshComps;
+	std::vector<class MeshComponent*> mBasicMeshComps;
+	std::vector<class MeshComponent*> mPhongComps;
 
 	// Game
 	class Game* mGame;
@@ -76,7 +77,8 @@ private:
 	class VertexArray* mSpriteVerts;
 
 	// Mesh shader
-	class Shader* mMeshShader;
+	class Shader* mBasicMeshShader;
+	class Shader* mPhongShader;
 
 	// View/projection for 3D shaders
 	Matrix4 mView;

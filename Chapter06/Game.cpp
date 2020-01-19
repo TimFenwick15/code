@@ -144,14 +144,26 @@ void Game::LoadData()
 	Quaternion q(Vector3::UnitY, -Math::PiOver2);
 	q = Quaternion::Concatenate(q, Quaternion(Vector3::UnitZ, Math::Pi + Math::Pi / 4.0f));
 	a->SetRotation(q);
-	MeshComponent* mc = new MeshComponent(a);
-	mc->SetMesh(mRenderer->GetMesh("Assets/Cube.gpmesh"));
+	MeshComponent* mc = new MeshComponent(a, mRenderer->GetMesh("Assets/CubePhong.gpmesh"));
+
+	/* The MeshComponent constructor calls Mesh::GetShaderName now, which requires the gpmesh to have been set.
+	 * So I've moved this to the MeshComponent constructor.
+	 */
 
 	a = new Actor(this);
 	a->SetPosition(Vector3(200.0f, -75.0f, 0.0f));
 	a->SetScale(3.0f);
-	mc = new MeshComponent(a);
-	mc->SetMesh(mRenderer->GetMesh("Assets/Sphere.gpmesh"));
+	mc = new MeshComponent(a, mRenderer->GetMesh("Assets/SphereBasic.gpmesh"));
+
+	a = new Actor(this);
+	a->SetPosition(Vector3(-200.0f, -75.0f, 0.0f));
+	a->SetScale(2.0f);
+	mc = new MeshComponent(a, mRenderer->GetMesh("Assets/SpherePhong.gpmesh"));
+
+	a = new Actor(this);
+	a->SetPosition(Vector3(-200.0f, 75.0f, 100.0f));
+	a->SetScale(50.0f);
+	mc = new MeshComponent(a, mRenderer->GetMesh("Assets/CubeBasic.gpmesh"));
 
 	// Setup floor
 	const float start = -1250.0f;

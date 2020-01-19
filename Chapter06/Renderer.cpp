@@ -19,7 +19,8 @@
 Renderer::Renderer(Game* game)
 	:mGame(game)
 	,mSpriteShader(nullptr)
-	,mMeshShader(nullptr)
+	, mBasicMeshShader(nullptr)
+	, mPhongShader(nullptr)
 {
 }
 
@@ -90,8 +91,10 @@ void Renderer::Shutdown()
 	delete mSpriteVerts;
 	mSpriteShader->Unload();
 	delete mSpriteShader;
-	mMeshShader->Unload();
-	delete mMeshShader;
+	mBasicMeshShader->Unload();
+	mPhongShader->Unload();
+	delete mBasicMeshShader;
+	delete mPhongShader;
 	SDL_GL_DeleteContext(mContext);
 	SDL_DestroyWindow(mWindow);
 }
@@ -126,15 +129,24 @@ void Renderer::Draw()
 	// Enable depth buffering/disable alpha blend
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
+
 	// Set the mesh shader active
-	mMeshShader->SetActive();
+	mBasicMeshShader->SetActive();
 	// Update view-projection matrix
-	mMeshShader->SetMatrixUniform("uViewProj", mView * mProjection);
+	mBasicMeshShader->SetMatrixUniform("uViewProj", mView * mProjection);
 	// Update lighting uniforms
-	SetLightUniforms(mMeshShader);
-	for (auto mc : mMeshComps)
+	SetLightUniforms(mBasicMeshShader);
+	for (auto mc : mBasicMeshComps)
 	{
-		mc->Draw(mMeshShader);
+		mc->Draw(mBasicMeshShader);
+	}
+
+	mPhongShader->SetActive();
+	mPhongShader->SetMatrixUniform("uViewProj", mView * mProjection); // either this, or basic mesh, is broken
+	SetLightUniforms(mPhongShader);// or this
+	for (auto mc : mPhongComps)
+	{
+		mc->Draw(mPhongShader);
 	}
 
 	// Draw all sprite components
@@ -185,13 +197,34 @@ void Renderer::RemoveSprite(SpriteComponent* sprite)
 
 void Renderer::AddMeshComp(MeshComponent* mesh)
 {
-	mMeshComps.emplace_back(mesh);
+	std::string s = mesh->GetMesh()->GetShaderName();
+	if (mesh->GetMesh()->GetShaderName() == "BasicMesh")
+	{
+		mBasicMeshComps.emplace_back(mesh);
+	}
+	else if (mesh->GetMesh()->GetShaderName() == "Phong")
+	{
+		mPhongComps.emplace_back(mesh);
+	}
+	else
+	{
+		mBasicMeshComps.emplace_back(mesh); /* Fallback incase I can't spell */
+	}
 }
 
 void Renderer::RemoveMeshComp(MeshComponent* mesh)
 {
-	auto iter = std::find(mMeshComps.begin(), mMeshComps.end(), mesh);
-	mMeshComps.erase(iter);
+	if (mesh->GetMesh()->GetShaderName() == "BasicMesh")
+	{
+		auto iterBasicMesh = std::find(mBasicMeshComps.begin(), mBasicMeshComps.end(), mesh);
+		mBasicMeshComps.erase(iterBasicMesh);
+	}
+	else if (mesh->GetMesh()->GetShaderName() == "Phong")
+	{
+		auto iterPhong = std::find(mPhongComps.begin(), mPhongComps.end(), mesh);
+		mPhongComps.erase(iterPhong);
+	}
+	/* No else case here, no fallback possible */
 }
 
 Texture* Renderer::GetTexture(const std::string& fileName)
@@ -257,18 +290,26 @@ bool Renderer::LoadShaders()
 	mSpriteShader->SetMatrixUniform("uViewProj", viewProj);
 
 	// Create basic mesh shader
-	mMeshShader = new Shader();
-	if (!mMeshShader->Load("Shaders/Phong.vert", "Shaders/Phong.frag"))
+	mBasicMeshShader = new Shader();
+	if (!mBasicMeshShader->Load("Shaders/BasicMesh.vert", "Shaders/BasicMesh.frag"))
 	{
 		return false;
 	}
 
-	mMeshShader->SetActive();
+	// Create basic mesh shader
+	mPhongShader = new Shader();
+	if (!mPhongShader->Load("Shaders/Phong.vert", "Shaders/Phong.frag"))
+	{
+		return false;
+	}
+
+	mBasicMeshShader->SetActive();
 	// Set the view-projection matrix
 	mView = Matrix4::CreateLookAt(Vector3::Zero, Vector3::UnitX, Vector3::UnitZ);
 	mProjection = Matrix4::CreatePerspectiveFOV(Math::ToRadians(70.0f),
 		mScreenWidth, mScreenHeight, 25.0f, 10000.0f);
-	mMeshShader->SetMatrixUniform("uViewProj", mView * mProjection);
+	mBasicMeshShader->SetMatrixUniform("uViewProj", mView * mProjection);
+	mPhongShader->SetMatrixUniform("uViewProj", mView * mProjection);
 	return true;
 }
 
