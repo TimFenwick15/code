@@ -34,6 +34,15 @@ struct DirectionalLight
 	vec3 mSpecColor;
 };
 
+struct PointLight
+{
+    vec3 mPosition;
+	vec3 mDiffuseColor;
+	vec3 mSpecColor;
+	float mSpecPower;
+	float mRadius;
+};
+
 // Uniforms for lighting
 // Camera position (in world space)
 uniform vec3 uCameraPos;
@@ -44,6 +53,9 @@ uniform vec3 uAmbientLight;
 
 // Directional Light
 uniform DirectionalLight uDirLight;
+
+// Point lights
+uniform PointLight uPointLight[4];
 
 void main()
 {
@@ -64,6 +76,31 @@ void main()
 		vec3 Diffuse = uDirLight.mDiffuseColor * NdotL;
 		vec3 Specular = uDirLight.mSpecColor * pow(max(0.0, dot(R, V)), uSpecPower);
 		Phong += Diffuse + Specular;
+	}
+
+	// Apply point lights
+	for (int i = 0; i < 4; i ++)
+	{
+	    float separation = distance(uPointLight[i].mPosition, fragWorldPos);
+		float lightingFalloff; // Idea for this came from https://github.com/desktopgame/code
+		if(separation < uPointLight[i].mRadius && uPointLight[i].mRadius > 0)
+		{
+		    lightingFalloff = (uPointLight[i].mRadius - separation) / uPointLight[i].mRadius;
+		}
+		else
+		{
+			lightingFalloff = 0;
+		}
+		L = normalize(uPointLight[i].mPosition);
+		R = normalize(reflect(-L, N));
+		NdotL = dot(N, L); // Vector from the surface to the light source - if > 0, it should be in front of the face
+		
+		if (NdotL > 0/* && uPointLight[i].mRadius > distance(-uPointLight[i].mPosition, fragWorldPos)*/)
+		{
+			vec3 Diffuse = uPointLight[i].mDiffuseColor * NdotL;
+			vec3 Specular = uPointLight[i].mSpecColor * pow(max(0.0, dot(R, V)), uPointLight[i].mSpecPower);
+			Phong += (Diffuse + Specular) * lightingFalloff;
+		}
 	}
 
 	// Final color is texture color times phong light (alpha = 1)

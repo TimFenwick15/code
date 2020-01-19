@@ -13,6 +13,8 @@
 #include <SDL/SDL.h>
 #include "Math.h"
 
+#define POINT_LIGHT_MAX (4)
+
 struct DirectionalLight
 {
 	// Direction of light
@@ -21,6 +23,14 @@ struct DirectionalLight
 	Vector3 mDiffuseColor;
 	// Specular color
 	Vector3 mSpecColor;
+};
+struct PointLight
+{
+	Vector3 mPosition;
+	Vector3 mDiffuseColor;
+	Vector3 mSpecColor;
+	float mSpecPower;
+	float mRadius;
 };
 
 class Renderer
@@ -48,6 +58,7 @@ public:
 
 	void SetAmbientLight(const Vector3& ambient) { mAmbientLight = ambient; }
 	DirectionalLight& GetDirectionalLight() { return mDirLight; }
+	void SetPointLight(PointLight point);
 
 	float GetScreenWidth() const { return mScreenWidth; }
 	float GetScreenHeight() const { return mScreenHeight; }
@@ -90,6 +101,8 @@ private:
 	// Lighting data
 	Vector3 mAmbientLight;
 	DirectionalLight mDirLight;
+	PointLight mPointLight[POINT_LIGHT_MAX];
+	unsigned int mPointLightCount;
 
 	// Window
 	SDL_Window* mWindow;

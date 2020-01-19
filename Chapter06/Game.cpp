@@ -156,14 +156,33 @@ void Game::LoadData()
 	mc = new MeshComponent(a, mRenderer->GetMesh("Assets/SphereBasic.gpmesh"));
 
 	a = new Actor(this);
-	a->SetPosition(Vector3(-200.0f, -75.0f, 0.0f));
-	a->SetScale(2.0f);
-	mc = new MeshComponent(a, mRenderer->GetMesh("Assets/SpherePhong.gpmesh"));
-
-	a = new Actor(this);
 	a->SetPosition(Vector3(-200.0f, 75.0f, 100.0f));
 	a->SetScale(50.0f);
 	mc = new MeshComponent(a, mRenderer->GetMesh("Assets/CubeBasic.gpmesh"));
+
+	// Tracking the point light
+	a = new Actor(this);
+	a->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
+	a->SetScale(3.0f);
+	mc = new MeshComponent(a, mRenderer->GetMesh("Assets/SpherePhong.gpmesh"));
+	
+	a = new Actor(this);
+	a->SetPosition(Vector3(50.0f, 50.0f, 0.0f));
+	a->SetScale(3.0f);
+	mc = new MeshComponent(a, mRenderer->GetMesh("Assets/SpherePhong.gpmesh"));
+
+	a = new Actor(this);
+	a->SetPosition(Vector3(-50.0f, -50.0f, 0.0f));
+	a->SetScale(3.0f);
+	mc = new MeshComponent(a, mRenderer->GetMesh("Assets/SpherePhong.gpmesh"));
+	a = new Actor(this);
+	a->SetPosition(Vector3(100.0f, 100.0f, 0.0f));
+	a->SetScale(3.0f);
+	mc = new MeshComponent(a, mRenderer->GetMesh("Assets/SpherePhong.gpmesh"));
+	a = new Actor(this);
+	a->SetPosition(Vector3(-100.0f, -100.0f, 0.0f));// the blue one
+	a->SetScale(3.0f);
+	mc = new MeshComponent(a, mRenderer->GetMesh("Assets/SpherePhong.gpmesh"));
 
 	// Setup floor
 	const float start = -1250.0f;
@@ -209,6 +228,39 @@ void Game::LoadData()
 	dir.mDirection = Vector3(0.0f, -0.707f, -0.707f);
 	dir.mDiffuseColor = Vector3(0.78f, 0.88f, 1.0f);
 	dir.mSpecColor = Vector3(0.8f, 0.8f, 0.8f);
+
+	/* Point light 1 */
+	PointLight point;
+	point.mPosition = Vector3(-100.0f, -100.0f, 0.0f);
+	point.mDiffuseColor = Vector3(1.0f, 0.0f, 0.0f);
+	point.mSpecColor = Vector3(1.0f, 0.0f, 0.0f);
+	point.mSpecPower = 1.0f;
+	point.mRadius = 100.0f;
+	mRenderer->SetPointLight(point);
+
+	// Point light 2
+	point.mPosition = Vector3(-100.0f, 100.0f, 100.0f);
+	point.mDiffuseColor = Vector3(0.0f, 1.0f, 0.0f);
+	point.mSpecColor = Vector3(0.0f, 1.0f, 0.0f);
+	point.mSpecPower = 1.0f;
+	point.mRadius = 300.0f;
+	mRenderer->SetPointLight(point);
+
+	// Point light 3
+	point.mPosition = Vector3(100.0f, 100.0f, 0.0f);
+	point.mDiffuseColor = Vector3(0.0f, 0.0f, 1.0f);
+	point.mSpecColor = Vector3(0.0f, 0.0f, 1.0f);
+	point.mSpecPower = 1.0f;
+	point.mRadius = 100.0f;
+	mRenderer->SetPointLight(point);
+
+	// Point light 4
+	point.mPosition = Vector3(100.0f, -100.0f, -100.0f);
+	point.mDiffuseColor = Vector3(0.0f, 1.0f, 0.0f);
+	point.mSpecColor = Vector3(0.0f, 1.0f, 0.0f);
+	point.mSpecPower = 1.0f;
+	point.mRadius = 150.0f;
+	mRenderer->SetPointLight(point);
 
 	// Camera actor
 	mCameraActor = new CameraActor(this);
