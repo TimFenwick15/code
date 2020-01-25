@@ -11,8 +11,9 @@
 #include "Game.h"
 #include "AudioSystem.h"
 
-AudioComponent::AudioComponent(Actor* owner, int updateOrder)
+AudioComponent::AudioComponent(Actor* owner, int updateOrder, MoveComponent* mc)
 	:Component(owner, updateOrder)
+	, mMoveComponent(mc)
 {
 }
 
@@ -23,7 +24,7 @@ AudioComponent::~AudioComponent()
 
 void AudioComponent::Update(float deltaTime)
 {
-	Component::Update(deltaTime);
+	Component::Update(deltaTime); /* What is this for? */
 
 	// Remove invalid 2D events
 	auto iter = mEvents2D.begin();
@@ -62,7 +63,12 @@ void AudioComponent::OnUpdateWorldTransform()
 	{
 		if (event.IsValid())
 		{
-			event.Set3DAttributes(world);
+			Vector3 velocity = Vector3::Zero;
+			if (mMoveComponent)
+			{
+				velocity = mOwner->GetForward() * mMoveComponent->GetForwardSpeed();
+			}
+			event.Set3DAttributes(world, velocity);
 		}
 	}
 }
@@ -70,12 +76,20 @@ void AudioComponent::OnUpdateWorldTransform()
 SoundEvent AudioComponent::PlayEvent(const std::string& name)
 {
 	SoundEvent e = mOwner->GetGame()->GetAudioSystem()->PlayEvent(name);
+
 	// Is this 2D or 3D?
 	if (e.Is3D())
 	{
 		mEvents3D.emplace_back(e);
+
+		Vector3 velocity = Vector3::Zero;
+		if (mMoveComponent)
+		{
+			velocity = mOwner->GetForward() * mMoveComponent->GetForwardSpeed();
+		}
+
 		// Set initial 3D attributes
-		e.Set3DAttributes(mOwner->GetWorldTransform());
+		e.Set3DAttributes(mOwner->GetWorldTransform(), velocity);
 	}
 	else
 	{

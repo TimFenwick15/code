@@ -16,6 +16,7 @@
 #include "CameraActor.h"
 #include "PlaneActor.h"
 #include "AudioComponent.h"
+#include "MoveComponent.h"
 
 Game::Game()
 :mRenderer(nullptr)
@@ -180,6 +181,8 @@ void Game::UpdateGame()
 	}
 	mUpdatingActors = false;
 
+	//mMovingSphere->SetForwardSpeed(10 * (sin(deltaTime * 1000) - 0.5));
+
 	// Move any pending actors to mActors
 	for (auto pending : mPendingActors)
 	{
@@ -297,8 +300,12 @@ void Game::LoadData()
 	a->SetScale(1.0f);
 	mc = new MeshComponent(a);
 	mc->SetMesh(mRenderer->GetMesh("Assets/Sphere.gpmesh"));
-	AudioComponent* ac = new AudioComponent(a);
+	mMovingSphere = new MoveComponent(a);
+	mMovingSphere->SetForwardSpeed(100.0f);
+	mMovingSphere->SetAngularSpeed(2.0f);
+	AudioComponent* ac = new AudioComponent(a, 100, mMovingSphere);
 	ac->PlayEvent("event:/FireLoop");
+
 
 	// Start music
 	mMusicEvent = mAudioSystem->PlayEvent("event:/Music");

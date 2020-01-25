@@ -52,4 +52,6 @@ private:
 	class CameraActor* mCameraActor;
 	SoundEvent mMusicEvent;
 	SoundEvent mReverbSnap;
+
+	class MoveComponent* mMovingSphere;
 };

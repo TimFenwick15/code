@@ -9,13 +9,14 @@
 #pragma once
 #include "Component.h"
 #include "SoundEvent.h"
+#include "MoveComponent.h"
 #include <vector>
 #include <string>
 
 class AudioComponent : public Component
 {
 public:
-	AudioComponent(class Actor* owner, int updateOrder = 200);
+	AudioComponent(class Actor* owner, int updateOrder = 200, class MoveComponent* mc = nullptr);
 	~AudioComponent();
 
 	void Update(float deltaTime) override;
@@ -26,4 +27,5 @@ public:
 private:
 	std::vector<SoundEvent> mEvents2D;
 	std::vector<SoundEvent> mEvents3D;
+	class MoveComponent* mMoveComponent;
 };

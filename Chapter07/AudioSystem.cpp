@@ -62,6 +62,8 @@ bool AudioSystem::Initialize()
 	LoadBank("Assets/Master Bank.strings.bank");
 	LoadBank("Assets/Master Bank.bank");
 
+	mLowLevelSystem->set3DSettings(100.0f, 50.0f, 1.0f);
+
 	return true;
 }
 
@@ -278,7 +280,7 @@ namespace
 	}
 }
 
-void AudioSystem::SetListener(const Matrix4& viewMatrix)
+void AudioSystem::SetListener(const Matrix4& viewMatrix, Vector3 velocity)
 {
 	// Invert the view matrix to get the correct vectors
 	Matrix4 invView = viewMatrix;
@@ -291,7 +293,8 @@ void AudioSystem::SetListener(const Matrix4& viewMatrix)
 	// In the inverted view, second row is up
 	listener.up = VecToFMOD(invView.GetYAxis());
 	// Set velocity to zero (fix if using Doppler effect)
-	listener.velocity = {0.0f, 0.0f, 0.0f};
+	listener.velocity = VecToFMOD(velocity);
+
 	// Send to FMOD
 	mSystem->setListenerAttributes(0, &listener);
 }
