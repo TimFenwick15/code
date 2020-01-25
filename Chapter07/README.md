@@ -20,8 +20,14 @@ Note the audio library may use a different coordinate system, and in our case it
 An AudioComponent on an actor means audio is associated with the actor, and dies when the actor dies
 
 ## Third Person
-Want to use player position, and camera orientation.
-VirtualPos = ||PlayerToSound|| * CameraToSound / ||CameraToSound||
+Use player position, and camera orientation
+
+Player P, Camera C, Sound S
+
+PlayerToSound = S - P
+CameraToSound = S - C
+
+VirtualPosition = ||PlayerToSound|| * CameraToSound / ||CameraToSound||
 
 ## Doppler
 Use nLowLevelSystem->set3DSettings

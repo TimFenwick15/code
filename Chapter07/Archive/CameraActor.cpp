@@ -13,15 +13,12 @@
 #include "AudioSystem.h"
 #include "Game.h"
 #include "AudioComponent.h"
-#include "MeshComponent.h"
 
 CameraActor::CameraActor(Game* game)
 	:Actor(game)
 {
 	mMoveComp = new MoveComponent(this);
 	mAudioComp = new AudioComponent(this);
-	MeshComponent* mc = new MeshComponent(this);
-	mc->SetMesh(game->GetRenderer()->GetMesh("Assets/Sphere.gpmesh"));
 	mLastFootstep = 0.0f;
 	mFootstep = mAudioComp->PlayEvent("event:/Footstep");
 	mFootstep.SetPaused(true);
@@ -40,12 +37,13 @@ void CameraActor::UpdateActor(float deltaTime)
 		mLastFootstep = 0.5f;
 	}
 
+
 	// Compute new camera from this actor
 	Vector3 forward = GetForward();
-	mCameraPos = GetPosition() - forward * 200.0f + Vector3::UnitZ * 100.0f;
+	Vector3 cameraPos = GetPosition();
 	Vector3 target = GetPosition() + forward * 100.0f;
 	Vector3 up = Vector3::UnitZ;
-	Matrix4 view = Matrix4::CreateLookAt(mCameraPos, target, up);
+	Matrix4 view = Matrix4::CreateLookAt(cameraPos, target, up);
 	GetGame()->GetRenderer()->SetViewMatrix(view);
 	GetGame()->GetAudioSystem()->SetListener(view, forward * mMoveComp->GetForwardSpeed());
 }
